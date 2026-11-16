@@ -8,9 +8,10 @@ name: publish
 # environment and exercised, and only then uploaded to PyPI. The upload to PyPI
 # runs in the environment "pypi", which waits for a reviewer's approval.
 #
-# Uploads use trusted publishing (OpenID Connect): no token is stored. Each
-# index has a trusted publisher per distribution for this repository, this
-# workflow (publish.yml) and the environment named in the job.
+# PyPI uploads use trusted publishing (OpenID Connect): no token is stored, and
+# PyPI has a trusted publisher per distribution for this repository, this
+# workflow (publish.yml) and the environment "pypi". TestPyPI uploads use an
+# API token, the secret TEST_PYPI_API_TOKEN of the environment "testpypi".
 #
 # Each distribution has its own version: one whose version is already on the
 # index is skipped, so a release uploads only the distributions that moved.
@@ -53,8 +54,6 @@ jobs:
     environment:
       name: testpypi
       url: https://test.pypi.org/p/gnsswire
-    permissions:
-      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -63,16 +62,19 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           packages-dir: dist/1/
           skip-existing: true
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           packages-dir: dist/2/
           skip-existing: true
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           packages-dir: dist/3/
           skip-existing: true
 
