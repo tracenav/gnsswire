@@ -1,0 +1,130 @@
+name: publish
+
+# Publishes a release when its tag is pushed. The tag is gnsswire-X.Y.Z, where
+# X.Y.Z is the version of the gnsswire distribution (RELEASES.md).
+#
+# As the Python packaging tutorial does it: every distribution is built and
+# checked once, uploaded to TestPyPI, installed from TestPyPI into a clean
+# environment and exercised, and only then uploaded to PyPI. The upload to PyPI
+# runs in the environment "pypi", which waits for a reviewer's approval.
+#
+# Uploads use trusted publishing (OpenID Connect): no token is stored. Each
+# index has a trusted publisher per distribution for this repository, this
+# workflow (publish.yml) and the environment named in the job.
+#
+# Each distribution has its own version: one whose version is already on the
+# index is skipped, so a release uploads only the distributions that moved.
+# They are uploaded in dependency order (bits, the codecs, then gnsswire), so
+# that installing gnsswire never needs a distribution not yet uploaded.
+
+on:
+  push:
+    tags: ["gnsswire-*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - name: The tag names the version of gnsswire
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('packages/gnsswire/pyproject.toml', 'rb'))['project']['version'])")
+          test "$GITHUB_REF_NAME" = "gnsswire-$version" || { echo "tag $GITHUB_REF_NAME, but gnsswire is $version"; exit 1; }
+      - name: Build every distribution, in upload order
+        run: |
+          uv build --no-sources -o dist/1 packages/bits
+          for p in nmea ubx rtcm3 spartn skytraq rinex nav; do uv build --no-sources -o dist/2 "packages/$p"; done
+          uv build --no-sources -o dist/3 packages/gnsswire
+      - run: uvx twine check --strict dist/*/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/gnsswire
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/1/
+          skip-existing: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/2/
+          skip-existing: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/3/
+          skip-existing: true
+
+  testpypi-install:
+    needs: testpypi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: astral-sh/setup-uv@v6
+      - name: Install gnsswire from TestPyPI alone into a clean Python 3.11
+        run: |
+          version="${GITHUB_REF_NAME#gnsswire-}"
+          uv venv --python 3.11 /tmp/check
+          # The index can take a minute to list a new upload.
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            uv pip install --python /tmp/check/bin/python --no-cache \
+              --index-url https://test.pypi.org/simple/ "gnsswire==$version" && exit 0
+            sleep 30
+          done
+          exit 1
+      - name: Every codec imports, and the README example runs
+        run: |
+          /tmp/check/bin/python -I - <<'EOF'
+          from gnsswire import bits, nav, nmea, rinex, rtcm3, skytraq, spartn, ubx
+          # The 1005 example of RTCM 10403.3 section 4.2.
+          frame = rtcm3.parse(bytes.fromhex("D300133ED7D30202980EDEEF34B4BD62AC0941986F33360B98"), 0)
+          assert rtcm3.decode(frame).station == 2003
+          sentence = b"$GPZDA,082710.00,16,09,2002,00,00*64\r\n"
+          assert nmea.decode(nmea.parse(sentence, 0)).year == "2002"
+          EOF
+
+  pypi:
+    needs: testpypi-install
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/gnsswire
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/1/
+          skip-existing: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/2/
+          skip-existing: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/3/
+          skip-existing: true
