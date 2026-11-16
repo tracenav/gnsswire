@@ -150,7 +150,7 @@ def test_wheel_metadata(dists, name):
     assert field["Classifier"] == p["classifiers"]
 
 
-AUTHORS = "the gnsswire authors"
+AUTHORS = "Trace Navigation LLC"
 REPOSITORY = "https://github.com/tracenav/gnsswire"
 
 
