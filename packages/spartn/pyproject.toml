@@ -10,7 +10,8 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-authors = [{ name = "Trace Navigation LLC" }]
+authors = [{ name = "Trace Navigation" }]
+maintainers = [{ name = "Jacob Armstrong", email = "hi@jacobarm.com" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

@@ -142,6 +142,7 @@ def test_wheel_metadata(dists, name):
     assert meta.split("\n\n", 1)[1].strip() == (ROOT / "packages" / name / "README.md") \
         .read_text().strip()
     assert field["Author"] == [AUTHORS]
+    assert field["Maintainer-email"] == [f'{MAINTAINER["name"]} <{MAINTAINER["email"]}>']
     urls = dict(u.split(", ", 1) for u in field["Project-URL"])
     assert urls["Homepage"] == REPOSITORY and urls["Issues"] == f"{REPOSITORY}/issues"
     assert urls["Changelog"] == f"{REPOSITORY}/blob/main/RELEASES.md"
@@ -150,7 +151,8 @@ def test_wheel_metadata(dists, name):
     assert field["Classifier"] == p["classifiers"]
 
 
-AUTHORS = "Trace Navigation LLC"
+AUTHORS = "Trace Navigation"
+MAINTAINER = {"name": "Jacob Armstrong", "email": "hi@jacobarm.com"}
 REPOSITORY = "https://github.com/tracenav/gnsswire"
 
 
@@ -160,6 +162,7 @@ def test_metadata_is_complete(name):
     # classifiers of every Python version CI tests that a classifier exists for.
     p = project(name)
     assert p["authors"] == [{"name": AUTHORS}]
+    assert p["maintainers"] == [MAINTAINER]
     assert set(p["urls"]) == {"Homepage", "Source", "Changelog", "Issues"}
     assert all(u.startswith(REPOSITORY) for u in p["urls"].values())
     minimum = int(p["requires-python"].removeprefix(">=3."))
