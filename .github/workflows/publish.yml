@@ -17,10 +17,15 @@ name: publish
 # index is skipped, so a release uploads only the distributions that moved.
 # They are uploaded in dependency order (bits, the codecs, then gnsswire), so
 # that installing gnsswire never needs a distribution not yet uploaded.
+#
+# Run by hand (workflow_dispatch) it is a trial: every version gets the suffix
+# .postN (N the run number), since an index never takes a version twice, and
+# the distributions go to TestPyPI only. PyPI is uploaded to only from a tag.
 
 on:
   push:
     tags: ["gnsswire-*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,15 +33,24 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
-      - name: The tag names the version of gnsswire
+      - name: A trial gives every distribution a .postN version
+        if: github.event_name == 'workflow_dispatch'
+        run: sed -i -E "s/^version = \"([0-9.]+)\"$/version = \"\1.post$GITHUB_RUN_NUMBER\"/" packages/*/pyproject.toml
+      - name: The version of gnsswire, which a tag must name
+        id: version
         run: |
           version=$(python3 -c "import tomllib; print(tomllib.load(open('packages/gnsswire/pyproject.toml', 'rb'))['project']['version'])")
-          test "$GITHUB_REF_NAME" = "gnsswire-$version" || { echo "tag $GITHUB_REF_NAME, but gnsswire is $version"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            test "$GITHUB_REF_NAME" = "gnsswire-$version" || { echo "tag $GITHUB_REF_NAME, but gnsswire is $version"; exit 1; }
+          fi
       - name: Build every distribution, in upload order
         run: |
           uv build --no-sources -o dist/1 packages/bits
@@ -79,13 +93,13 @@ jobs:
           skip-existing: true
 
   testpypi-install:
-    needs: testpypi
+    needs: [build, testpypi]
     runs-on: ubuntu-latest
     steps:
       - uses: astral-sh/setup-uv@v6
       - name: Install gnsswire from TestPyPI alone into a clean Python 3.11
         run: |
-          version="${GITHUB_REF_NAME#gnsswire-}"
+          version="${{ needs.build.outputs.version }}"
           uv venv --python 3.11 /tmp/check
           # The index can take a minute to list a new upload.
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
@@ -107,6 +121,7 @@ jobs:
 
   pypi:
     needs: testpypi-install
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
       name: pypi
