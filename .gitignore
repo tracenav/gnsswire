@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+# Specs are staged locally for reading; several are copyrighted and none are committed.
+refs/*
+!refs/README.md
+.claude/settings.local.json
+/AGENTS.md
+/STATUS.md

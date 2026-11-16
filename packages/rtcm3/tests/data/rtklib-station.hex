@@ -1,0 +1,24 @@
+# RTCM 3 frames produced by an independent encoder, RTKLIB's gen_rtcm3
+# (pyrtklib 0.2.7, a binding of RTKLIB, BSD 2-clause, copyright T. Takasu),
+# one frame per line as hex, each with what it was encoded from:
+#
+# - "synthetic station": random station data (seeded), encoded as 1006 and,
+#   from the same data, as 1005; antenna heights 0, 6.5535 m and random.
+#
+# Made as described in packages/rtcm3/tests/make_data/README.md, step 4.
+d300153eeb1703369a00a74187cea17e790879e25af700008d8414  # synthetic station 0 as 1006
+d300133edb1703369a00a74187cea17e790879e25af7c1352a  # synthetic station 0 as 1005
+d300153ee6b60336fe8420ff88044a4e3508d5f6b907ffff15ede8  # synthetic station 1 as 1006
+d300133ed6b60336fe8420ff88044a4e3508d5f6b90734aec1  # synthetic station 1 as 1005
+d300153eecfc0336fb5b33dd87be63fd810881f43916bd0e393190  # synthetic station 2 as 1006
+d300133edcfc0336fb5b33dd87be63fd810881f4391673172f  # synthetic station 2 as 1005
+d300153ee04a033698207b3687f71b95b708d750448717f1154194  # synthetic station 3 as 1006
+d300133ed04a033698207b3687f71b95b708d7504487eafc6c  # synthetic station 3 as 1005
+d300153eec580336fef3fe7f87f8ed6be5088e71806f53053a641b  # synthetic station 4 as 1006
+d300133edc580336fef3fe7f87f8ed6be5088e71806f4a1488  # synthetic station 4 as 1005
+d300153ee3680336d1eb216b87cab17c3008adae9330b7fc95fb25  # synthetic station 5 as 1006
+d300133ed3680336d1eb216b87cab17c3008adae9330c49501  # synthetic station 5 as 1005
+d300153eeebd0337065eb4d787b830c69308a87fddd9ff5a80093c  # synthetic station 6 as 1006
+d300133edebd0337065eb4d787b830c69308a87fddd9b7cd4e  # synthetic station 6 as 1005
+d300153ee61c0336d9ebd97987d8b0d62408d8017b9233f3e22da1  # synthetic station 7 as 1006
+d300133ed61c0336d9ebd97987d8b0d62408d8017b92e0b7af  # synthetic station 7 as 1005

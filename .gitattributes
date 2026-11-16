@@ -1,0 +1,3 @@
+# LF everywhere, on every platform: the tests compare file bytes (LICENSE
+# against the copy in each wheel, test data, README examples).
+* text=auto eol=lf

@@ -1,0 +1,53 @@
+# Workspace root. Not a distribution: it only installs the members for
+# development and runs the workspace-wide tests.
+[project]
+name = "gnsswire-workspace"
+version = "0"
+requires-python = ">=3.11"
+dependencies = [
+    "gnsswire",
+    "gnsswire-bits",
+    "gnsswire-nmea",
+    "gnsswire-ubx",
+    "gnsswire-rtcm3",
+    "gnsswire-spartn",
+    "gnsswire-skytraq",
+    "gnsswire-rinex",
+    "gnsswire-nav",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+gnsswire = { workspace = true }
+gnsswire-bits = { workspace = true }
+gnsswire-nmea = { workspace = true }
+gnsswire-ubx = { workspace = true }
+gnsswire-rtcm3 = { workspace = true }
+gnsswire-spartn = { workspace = true }
+gnsswire-skytraq = { workspace = true }
+gnsswire-rinex = { workspace = true }
+gnsswire-nav = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "cryptography>=50.0.2",
+    # The build backend, pinned: tests/test_build.py builds every distribution
+    # with this copy (uv build --no-build-isolation), so the gate needs no
+    # download beyond `uv sync`. It must satisfy every [build-system] requires.
+    "hatchling==1.33.0",
+    "hypothesis>=6.170.15",
+    "pynmeagps>=1.1.9",
+    "pyrtcm>=1.2.1",
+    "pyspartn>=1.1.2",
+    "pytest>=8",
+    "pyubx2>=1.4.1",
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+testpaths = ["tests", "packages"]

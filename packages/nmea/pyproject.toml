@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.27"]   # 1.27: PEP 639 licence metadata
+build-backend = "hatchling.build"
+
+[project]
+name = "gnsswire-nmea"
+version = "0.2.0"
+description = "NMEA 0183 sentence framing and GGA/ZDA, fields kept as strings."
+readme = "README.md"
+# The code. The sdist also carries test data under the GPSD project's BSD
+# terms, with its notice in tests/THIRD_PARTY_NOTICES.md; the wheel does not.
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "the gnsswire authors" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/tracenav/gnsswire"
+Source = "https://github.com/tracenav/gnsswire/tree/main/packages/nmea"
+Changelog = "https://github.com/tracenav/gnsswire/blob/main/RELEASES.md"
+Issues = "https://github.com/tracenav/gnsswire/issues"
+
+# gnsswire is a namespace shared by several distributions: no __init__.py at that level.
+[tool.hatch.build.targets.wheel]
+packages = ["src/gnsswire"]

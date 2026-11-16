@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The tests read UTF-8 files with Path.read_text(); before Python 3.15 that
+  # uses the locale's encoding on Windows unless UTF-8 mode is on.
+  PYTHONUTF8: "1"
+
+jobs:
+  pytest:
+    name: pytest (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Every version from requires-python (>=3.11) to the newest release.
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      # Installs the locked dev group, which includes the pinned build backend
+      # (hatchling): tests/test_build.py then builds every distribution offline
+      # with it, so the gate downloads nothing beyond this step.
+      - run: uv sync --locked
+      - run: uv run --locked pytest
