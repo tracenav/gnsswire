@@ -342,14 +342,18 @@ CRAFTED = {
 
 
 def _cost(module, data: bytes, rounds: int = 3) -> float:
-    """CPU seconds per byte of ``scan`` over ``data``, best of ``rounds``."""
+    """Seconds per byte of ``scan`` over ``data``, best of ``rounds``.
+
+    perf_counter, not process_time: on Windows process_time advances in
+    15.6 ms steps, so a fast scan could measure as zero.
+    """
     import time
     best = float("inf")
     for _ in range(rounds):
-        start = time.process_time()
+        start = time.perf_counter()
         for _ in module.scan(data):
             pass
-        best = min(best, time.process_time() - start)
+        best = min(best, time.perf_counter() - start)
     return best / len(data)
 
 
