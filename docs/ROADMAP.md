@@ -5,7 +5,7 @@ the fields on the wire (integers; text for NMEA and RINEX) and back, each
 usable on its own, written from the published specifications. Every new message is a field table
 added as data, with the checks the existing ones have; a frame that raised
 `Unsupported` then decodes. What each distribution does not decode today
-is in the "Limitations" section of its README.
+is under "Limitations" in the repository README.
 
 ## Next
 

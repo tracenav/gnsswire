@@ -1,52 +1,107 @@
 # gnsswire-spartn
 
-SPARTN v2 framing, decryption and OCB/HPAC/GAD/BPAC messages, as integer
-fields. Depends on `gnsswire-bits` only.
+SPARTN corrections for Python
 
-Import as `gnsswire.spartn`. Part of the gnsswire workspace; see the
-[repository README](https://github.com/tracenav/gnsswire#readme) for the
-interface every codec shares and for the version policy. Written from the
-freely available SPARTN v2.0.3 interface specification.
+[![tests](https://github.com/tracenav/gnsswire/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/tracenav/gnsswire/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/gnsswire-spartn)](https://pypi.org/project/gnsswire-spartn/)
+
+gnsswire-spartn reads and writes SPARTN v2, the correction format of
+satellite and IP precise positioning services. It gives you SPARTN framing,
+with a scanner that resynchronises through garbage, and these messages:
+
+- OCB: orbit, clock and bias corrections for GPS, GLONASS, Galileo, BeiDou
+  and QZSS;
+- HPAC: troposphere and ionosphere corrections;
+- GAD: the areas the HPAC corrections cover;
+- BPAC: basic-precision atmosphere corrections.
+
+Every message decodes to a frozen dataclass of the integers on the wire and
+encodes back to the same bytes. Encrypted messages decode too, once
+decrypted with the service's key. It is part of
+[gnsswire](https://pypi.org/project/gnsswire/), codecs for GNSS wire
+formats.
+
+## Installation
+
+```sh
+$ pip install gnsswire-spartn
+```
+
+gnsswire-spartn requires Python 3.11+ and depends on
+[gnsswire-bits](https://pypi.org/project/gnsswire-bits/) only. `pip install
+gnsswire` installs it with every other format.
+
+## Usage
+
+### Read messages from a stream
+
+`scan` finds every frame in a buffer, skipping noise and a frame cut off at
+the end. A decoded `Message` holds the frame's transport fields, with the
+message table in `body`:
 
 ```python
 from gnsswire import spartn
 
-# A geographic area definition (SM 2-0) with one area, in a frame with a
-# 32-bit time tag and the 24-bit CRC (TF005 = 2).
-area = spartn.GadArea(area_id=1, latitude=1000, longitude=2000, latitude_nodes=3,
-                      longitude_nodes=4, latitude_spacing=5, longitude_spacing=6)
-gad = spartn.Gad(siou=7, aiou=1, reserved=0, area_count=0, areas=(area,))  # SF030 = count - 1
-plain = spartn.Message(
-    message_type=2, eaf=0, crc_type=2,
-    description=spartn.Description(subtype=0, time_tag_type=1, time_tag=123_456_789,
-                                   solution_id=1, processor_id=0, encryption_id=None,
-                                   sequence=None, auth_indicator=None, auth_length=None),
-    body=gad)
-raw = spartn.encode(plain)
-[frame] = spartn.scan(b"\x00garbage" + raw)
-assert spartn.decode(frame) == plain
+stream = bytes.fromhex(
+    "00FF"                                              # noise
+    "730404A1083ADE68A8100388002FA1F41C29802A1F5E"      # GAD, not encrypted
+    "730404")                                           # cut off
 
-# Encrypted frames (EAF set) need the key: AES-128-CTR, IV of section 8.15.1.
-key = bytes(range(16))
-sealed = spartn.Message(2, 1, 2, spartn.Description(0, 1, 123_456_789, 1, 0, 3, 17, 0, 0), gad)
-wire = spartn.encode(spartn.encrypt(spartn.to_frame(sealed), key))
-frame = spartn.parse(wire)
-try:
-    spartn.decode(frame)
-except spartn.Encrypted:
-    pass
-assert spartn.decode(spartn.decrypt(frame, key)) == sealed
+for frame in spartn.scan(stream):
+    message = spartn.decode(frame)
+    area = message.body.areas[0]
+    print(type(message.body).__name__, message.description.time_tag, area.area_id,
+          area.latitude, area.longitude)
+# Gad 123456789 1 1000 2000
 ```
 
-A decoded `Message` is the frame's transport fields (TF002 to TF015, and the
-embedded authentication data TF017 kept as bytes, not verified) with the
-message table in `body`. Every exception derives from `spartn.Error` (a
-`ValueError`). `decode` raises `Encrypted` for a frame that has not been
+Fields are the raw SF integers; scale them with the resolutions of SPARTN
+Table 6.2.
+
+### Write a message
+
+Messages are frozen dataclasses; `encode` frames one, CRCs included:
+
+```python
+from dataclasses import replace
+
+later = replace(message, description=replace(message.description, time_tag=123_456_790))
+print(spartn.encode(later).hex().upper())
+# 730404A1083ADE68B0100388002FA1F41C2980722257
+```
+
+### Decrypt a message
+
+A service may encrypt its messages. An encrypted frame (`eaf` set) raises
+`Encrypted` until it has been through `decrypt` with the service's key
+(AES-128-CTR, section 8.15, in pure Python):
+
+```python
+key = bytes.fromhex("000102030405060708090A0B0C0D0E0F")
+frame = spartn.parse(bytes.fromhex("730404EC083ADE68A810344084DC48E666F61EC3EB0E8F37"))
+try:
+    spartn.decode(frame)
+except spartn.Encrypted as exc:
+    print(exc)                     # the payload is encrypted: decrypt(frame, key) first
+
+message = spartn.decode(spartn.decrypt(frame, key))
+print(type(message.body).__name__, message.description.encryption_id,
+      message.description.sequence)                    # Gad 3 17
+```
+
+A frame with the 16-bit time tag needs the full 32-bit tag for the IV:
+`decrypt(frame, key, time_tag)`. `encrypt` does the reverse.
+
+`parse(buf, offset)` answers for one offset only (`Frame`, `NeedMore` or
+`Invalid`); `scan` searches. Every exception derives from `spartn.Error` (a
+`ValueError`): `decode` raises `Encrypted` for a frame that has not been
 through `decrypt`, `Unsupported` for a type and subtype without a table,
 `FieldError` (also a `gnsswire.bits.BitError`) when the payload is shorter
-than its table, and `NoFrame` when given anything but a `Frame`, such as
-the `NeedMore` or `Invalid` that `parse` returns. Any bytes-like object is
-accepted where bytes are.
+than its table, and `NoFrame` when given anything but a `Frame`. Embedded
+authentication data (TF017) is kept as bytes, not verified. Any bytes-like
+object is accepted where bytes are.
+
+## Messages
 
 | Message | Class | SPARTN v2.0.3 |
 |---|---|---|
@@ -58,68 +113,25 @@ accepted where bytes are.
 | BPAC, SM 3-0 | `Bpac` | section 6.5.4, Tables 6.25 to 6.28 |
 | AES-128-CTR | `decrypt`, `encrypt`, `iv` | section 8.15; FIPS 197; RFC 3686 |
 
-Fields are the raw SF integers; scale them with the resolutions of Table 6.2.
 The phase and code bias masks are kept as sent; Table 6.2 names the signal
 of each bit. v2.0.3 defines Galileo bits 3 and 4 (SF102: L8Q and L6C;
 SF105: C8Q and C6C), which v2.0.2 left spare; the mask widths are
 unchanged, so frames of either version decode the same.
 
-**Data after a table.** Section 8.4 item 4: "decoder implementations should
-not use payload length to indicate where they stop decoding", so that
-fields can be added to a message later. `decode` keeps whatever follows the
-table in the body's `extension`: `None` for nothing but zero fill bits,
-otherwise a `gnsswire.bits.Extension` that `encode` writes back, so the
-frame round-trips. `decode(frame, strict=True)` refuses such a payload with
-`FieldError`.
+## Documentation
 
-**OCB header of any subtype.** Section 8.4 item 5 asks decoders to read
-the end-of-set flag (SF010) of every OCB message "even though they may not
-understand the data". `decode_ocb_header(frame)` reads the header block of
-Table 6.3 for every subtype, 0 to 15; `ephemeris_type`, `mask_size` and
-`mask` are `None` for subtypes without a table (their widths depend on the
-constellation).
+What gnsswire-spartn does not decode, what its tests rest on and the readings
+it takes where its specification is ambiguous are under
+[Limitations](https://github.com/tracenav/gnsswire#gnsswire-spartn) in the
+[repository README](https://github.com/tracenav/gnsswire#readme), with the
+interface every gnsswire format shares and the version policy. Release
+notes are in [RELEASES.md](https://github.com/tracenav/gnsswire/blob/main/RELEASES.md).
 
-**Do-not-use satellites (AMBIGUOUS).** Table 6.2 says a satellite with SF013
-(DNU) set carries no other data; Table 8.2 sizes its block as SF013, SF014
-and SF015. This codec follows Table 6.2: SF013 is defined there twice in the
-same words, Table 8.2 only gives "nominal" sizes, and its OCB header length
-does not hold for every constellation either. Where a payload fits only the
-Table 8.2 reading, the tolerant `decode` returns that reading instead, and
-`spartn.dnu_reading(message.body)` reports which one it is
-(`DNU_TABLE_6_2` or `DNU_TABLE_8_2`); `encode` writes a message back with
-the reading it was decoded with. `strict=True` accepts Table 6.2 only.
+## Contribute
 
-**BPAC VTEC blocks (AMBIGUOUS).** Table 6.26 repeats the VTEC block "for each
-grid point", while SF079 is a mask of the grid points present and Table 8.2
-counts the blocks as the number of points present. The codec follows the
-mask: one `BpacGridPoint` per set bit of `present`.
+Report bugs and request messages in the
+[issue tracker](https://github.com/tracenav/gnsswire/issues).
 
-**Time tags and the IV.** A frame with the 16-bit time tag (seconds within
-a half day of the constellation's time) needs the caller to supply the full
-32-bit tag for the IV (`decrypt(frame, key, time_tag)`): section 8.15.1
-does not say how to expand it. `iv`, `decrypt` and `encrypt` raise
-`TimeTagError` when the full tag supplied does not reduce to the frame's
-16-bit tag (`time_tag % HALF_DAY`), or when a frame with a 32-bit tag is
-given another one.
+## Licence
 
-## Limitations
-
-- Not decoded (`Unsupported`): the dynamic key message (SM 4-0, which
-  `decrypt` and `encrypt` refuse too), group authentication (SM 4-1),
-  proprietary messages, and any other type or subtype without a table
-  above; `decode_ocb_header` still reads the header of every OCB subtype.
-- Decryption is AES-128-CTR with a 16-byte key only: the other key lengths
-  of SF087 and the ChaCha12 and ChaCha20 ciphers of SF085 are not
-  implemented. Embedded authentication data (TF017) is kept, not verified.
-- Tested only on frames generated from the tables, compared with pyspartn,
-  and decryption against the `cryptography` package; the test data holds
-  no frame from a correction service. pyspartn refuses OCB frames with an
-  extended bias mask, so those are checked by round trips and Table 8.2's
-  sizes only.
-- The message CRCs (TF018) are taken unreflected, as Table 7.2 prints
-  them: CRC-8/SMBUS, CRC-16/XMODEM, CRC-24/LTE-A and CRC-32/BZIP2.
-  TF006's CRC-4 is the reflected one of Table 7.1.
-- TF017 is read whenever TF014 is above 1, with the lengths Table 7.1
-  gives every TF015 value.
-- Do-not-use satellites, BPAC blocks and 16-bit time tags: the readings
-  taken are in the sections above.
+MIT.

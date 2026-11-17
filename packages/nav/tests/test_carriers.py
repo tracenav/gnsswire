@@ -69,7 +69,7 @@ def test_ubx_gps_words_are_source_data_bits():
     for k, w in enumerate(msg.dwrd):
         assert w >> 30 == 0
         assert (w >> 6) & 0xFFFFFF == (data >> (24 * (9 - k))) & 0xFFFFFF
-        # The parity bits are complemented with the data (README, "Limitations").
+        # The parity bits are complemented with the data (repository README, "Limitations").
         inverted = k > 0 and transmitted[k - 1] & 1
         assert w & 0x3F == (transmitted[k] ^ (0x3F if inverted else 0)) & 0x3F
     assert round_trip(msg).message == sf

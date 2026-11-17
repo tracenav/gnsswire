@@ -636,7 +636,7 @@ def test_pyrtcm_reads_table_9_by_its_idf_numbers():
     # RTKLIB, and Table 13 for the combined message) read int20 then int21,
     # cross-track then radial rate. pyrtcm 1.2.1 reads the fifth row as
     # IDF016 with Table 7's int21 and the sixth as IDF015 with int20: the
-    # same 41 bits, cut one bit later. The README, "Limitations", gives the
+    # same 41 bits, cut one bit later. The repository README, "Limitations", gives the
     # reading taken.
     sat = rtcm3.IgsOrbitSat(1, 2, 3, 4, cross=1, dot_radial=1, dot_along=5, dot_cross=6)
     m = rtcm3.IgsOrbit(**head(21), regional=0, satellite_count=1, satellites=(sat,))
@@ -656,7 +656,7 @@ def test_pyrtcm_reads_m_above_n_by_the_formula():
     # N = 1, M = 3 (outside section 4.5.1's M <= N): the loops of 8.4.1 give
     # 3 cosine and 1 sine coefficient (gnsswire); IDF039's formula,
     # (N+1)(N+2)/2 - (N-M)(N-M+1)/2, gives 2, and pyrtcm reads 2 cosine
-    # and no sine. The README, "Limitations", gives the reading taken.
+    # and no sine. The repository README, "Limitations", gives the reading taken.
     layer = rtcm3.IgsVtecLayer(45, 0, 2, (1, 2, 3), (4,))
     m = rtcm3.IgsVtec(**head(201), quality=1, layers_minus_1=0, layers=(layer,))
     theirs = vars(pyrtcm.RTCMReader.parse(rtcm3.encode(m)))
