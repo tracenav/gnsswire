@@ -436,8 +436,9 @@ given another one.
 
 ## Versions
 
-Each distribution has its own version, in its `pyproject.toml`, and is
-released on its own: a release of one does not move the others. Each
+Each distribution has its own version, in its `pyproject.toml`, which
+moves only when that distribution changes: a release raises the versions of
+the distributions it changes, and of `gnsswire`, and no others. Each
 release, with the versions of the distributions it covers, is listed in
 [RELEASES.md](RELEASES.md). `tests/test_build.py` enforces the mechanical
 parts of this policy.
@@ -469,8 +470,12 @@ parts of this policy.
   the same way, and takes a new compatibility number whenever one of those
   ranges moves.
 - Every distribution declares the same `requires-python`.
-- A release is tagged `<distribution>-<version>`, for example
-  `gnsswire-rtcm3-0.2.0`.
+- A release takes the version of the `gnsswire` distribution as its
+  number and is tagged `gnsswire-<version>`, for example `gnsswire-0.2.1`,
+  so every release raises that version: `gnsswire` takes a new
+  compatibility number when one of its ranges moves, and a new patch
+  otherwise, even when its requirements are unchanged. The tag publishes
+  each distribution whose version is not yet on PyPI.
 
 ## Contribute
 
