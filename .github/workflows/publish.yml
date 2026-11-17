@@ -8,7 +8,7 @@ name: publish
 # environment and exercised, and only then uploaded to PyPI. The upload to PyPI
 # runs in the environment "pypi", which waits for a reviewer's approval.
 #
-# PyPI uploads use trusted publishing (OpenID Connect): no token is stored, and
+# PyPI uploads will use trusted publishing (OpenID Connect): no token stored, and
 # PyPI has a trusted publisher per distribution for this repository, this
 # workflow (publish.yml) and the environment "pypi". TestPyPI uploads use an
 # API token, the secret TEST_PYPI_API_TOKEN of the environment "testpypi".
@@ -133,15 +133,20 @@ jobs:
         with:
           name: dist
           path: dist/
+      # The first release creates the projects with an API token, since PyPI
+      # takes one pending publisher per repository, workflow and environment.
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
           packages-dir: dist/1/
           skip-existing: true
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
           packages-dir: dist/2/
           skip-existing: true
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
           packages-dir: dist/3/
           skip-existing: true
