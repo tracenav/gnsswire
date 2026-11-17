@@ -1,8 +1,9 @@
 # gnsswire
 
 Small, dependency-free Python codecs for GNSS wire formats: NMEA 0183, u-blox
-UBX, RTCM 3, SPARTN v2 and the SkyTraq binary protocol, and RINEX 3 and 4
-observation files, and the IGS SSR corrections carried in RTCM 3 frames,
+UBX, RTCM 3, SPARTN v2 and the SkyTraq binary protocol, and RINEX 2, 3 and 4
+observation and navigation files, ANTEX 1.4 antenna calibration files, and the IGS SSR
+corrections carried in RTCM 3 frames,
 written from their published specifications. Each codec is its own
 installable distribution under one shared import namespace, so a project
 can depend on only the one it needs.
@@ -15,7 +16,8 @@ can depend on only the one it needs.
 | `gnsswire-rtcm3` | `gnsswire.rtcm3` | `bits` | framing, ephemerides, MSM1 to MSM7, 1005 to 1008, 1033, 1230; IGS SSR (4076) |
 | `gnsswire-spartn` | `gnsswire.spartn` | `bits` | framing, OCB, HPAC, GAD, BPAC; AES-128-CTR decryption |
 | `gnsswire-skytraq` | `gnsswire.skytraq` | nothing | framing, raw measurements, navigation data bits |
-| `gnsswire-rinex` | `gnsswire.rinex` | nothing | RINEX 3 and 4 observation files, read and written losslessly |
+| `gnsswire-rinex` | `gnsswire.rinex` | nothing | RINEX 2, 3 and 4 observation and navigation files, read and written losslessly |
+| `gnsswire-antex` | `gnsswire.antex` | nothing | ANTEX 1.4 antenna calibration files (phase centre offsets and variations), read and written losslessly |
 | `gnsswire-nav` | `gnsswire.nav` | `bits` | broadcast navigation messages (GPS, Galileo, BeiDou, GLONASS) from UBX and SkyTraq words; ephemerides as RTCM fields |
 | `gnsswire` | (none) | all of the above | installs every codec |
 
@@ -32,7 +34,8 @@ pip install gnsswire-rtcm3      # one codec (and gnsswire-bits, which it uses)
 
 Every codec of a binary or sentence format has the same four functions
 (RINEX files are read and written whole instead, with `read` and `write`;
-see `packages/rinex/README.md`):
+see `packages/rinex/README.md`; so are ANTEX files,
+`packages/antex/README.md`):
 
 ```text
 parse(buf, offset) -> Frame | NeedMore | Invalid   # is there a valid frame here; never searches
@@ -104,12 +107,28 @@ included.
   functions of the binary codecs), lossless; every record as the text of
   its columns, observation types from SYS / # / OBS TYPES, event records,
   RINEX 4's picosecond field.
+- **RINEX 2 observation files**: `read2` and `write2`, lossless, from
+  RINEX 2.11; observation types from # / TYPES OF OBSERV, the satellite
+  list of the epoch record with its continuation lines, five observations
+  to a line, event and cycle slip records, the receiver clock offset.
+- **RINEX 2, 3 and 4 navigation message files**: `read_nav` and
+  `write_nav`, lossless; every record as the text of its columns, and its
+  values by the names of its table (`nav_fields`): the ephemerides of
+  GPS, Galileo, GLONASS, BeiDou, QZSS, SBAS and NavIC of RINEX 3.05, the
+  EPH messages of RINEX 4.02 (LNAV, CNAV, CNV1, CNV2, CNV3, INAV, FNAV,
+  FDMA, L1OC, L3OC, D1, D2, SBAS, L1NV) and its STO, EOP and ION records,
+  and the GPS, GLONASS and GEO files of RINEX 2.11.
+- **ANTEX 1.4 antenna calibration files**: `read` and `write`, lossless;
+  the header and, per receiver or satellite antenna, its type and serial
+  number, grid, validity, and per frequency the phase centre offsets and
+  the pattern rows (NOAZI and azimuth-dependent), with the optional rms
+  sections; every record as the text of its columns.
 
 Not implemented (decoding raises `Unsupported`): other NMEA sentences, other
 UBX messages, the standard RTCM SSR messages (1057 to 1068 and 1240 to
 1270; IGS SSR is decoded), RTCM 1041 and 1043 and NavIC MSM (not in RTCM
-10403.3), other RTCM messages, other SkyTraq messages, RINEX 2 and RINEX
-navigation, meteorological and clock files, the SPARTN dynamic key and
+10403.3), other RTCM messages, other SkyTraq messages, RINEX
+meteorological and clock files, the SPARTN dynamic key and
 group authentication messages, ciphers other than AES-128, and
 verification of SPARTN embedded authentication. "Limitations", below,
 lists for each distribution what its codec does not decode, what its tests
@@ -258,8 +277,11 @@ given another one.
 
 ### gnsswire-rinex
 
-- RINEX 2 files, and navigation, meteorological and clock files, raise
-  `Unsupported`. Compressed files (Hatanaka CRINEX, gzip) must be expanded
+- Meteorological and clock files raise `Unsupported`, as does a
+  navigation file given to `read` or `read2`, an observation file given
+  to `read_nav`,
+  a RINEX 2 observation file given to `read` or a RINEX 3 or 4 one given
+  to `read2`: none guesses. Compressed files (Hatanaka CRINEX, gzip) must be expanded
   first.
 - Header records other than RINEX VERSION / TYPE, SYS / # / OBS TYPES and
   END OF HEADER are kept as text, unread: SYS / SCALE FACTOR in particular
@@ -268,9 +290,99 @@ given another one.
   read as the text in those columns, not refused, unless it breaks a rule
   the reader checks (such as the epoch flag, a record count or a
   satellite number); numeric formats are checked only by `number`.
+- RINEX 2 (`read2`), from RINEX 2.11, which leaves these to the reader:
+  a satellite always has `ceil(types / 5)` observation lines and an epoch
+  of more than 12 satellites its continuation lines, empty or short
+  where trailing blanks were truncated, never left out; a line longer
+  than its fields is refused, blanks included (80 columns, 68 for a
+  continuation line, 16 per observation type). A # / TYPES OF OBSERV
+  record after any event flag 2 to 5 changes the types from there on
+  (sections 0.4 and 5.3). The receiver clock offset is read on the first
+  line of an epoch only. Satellite numbers are kept as written (`  9`,
+  `G 9`); the system identifiers of section 5.1 (blank, G, R, S, E) are
+  accepted and others refused, so a file that lists BeiDou or QZSS
+  satellites, which 2.11 does not define, raises `Invalid`. Versions
+  2.00 to 2.99 are read by the tables of 2.11; version 1 is not read.
 - Tested on files built from the tables' formats, generated files and
   RTKLIB's reading of a synthetic file; the test data holds no file from
-  a receiver or an IGS station.
+  a receiver or an IGS station. The RINEX 2 files built in the tests are
+  Table A7 and the first epoch of Table A14 of RINEX 2.11, compared with
+  the document's text where it is staged; no independent reader is run
+  on RINEX 2.
+- Navigation files (`read_nav`), from RINEX 3.05, 4.02 and 2.11. Header
+  records are kept as text, unread (IONOSPHERIC CORR, TIME SYSTEM CORR
+  and LEAP SECONDS included). A record's values are text; what
+  `nav_fields` names follows the record's table, and spares and the
+  columns after a table's last value of a line are kept unnamed (in
+  `NavRecord.values`). The readings taken:
+  - A record's lines are found by shape (a character in column 1 starts
+    a RINEX 3 record, one in columns 1 to 2 a RINEX 2 record, a `>` line
+    a RINEX 4 record), and their number must be the table's: a record
+    cut short, or a blank line between records, raises `Invalid`.
+    GLONASS records of RINEX 3 may have three BROADCAST ORBIT lines (3.00
+    to 3.04) or four (3.05), whatever the header's version.
+  - A named value must be blank or a number with an optional exponent
+    after `D`, `E`, `d` or `e`; exponents of other than two digits are
+    accepted. Spares are not checked. The epoch fields must be numbers,
+    the satellite number of an ephemeris `A1,I2.2` (or `A1,I2`), and in
+    RINEX 4 the same as in the record's header line.
+  - RINEX 4 records of a type with no table (a record type other than
+    EPH, STO, EOP and ION, an EPH or ION message type or subtype 4.02
+    does not define) are kept on the same grid of columns and written
+    back, with no check of their values or number of lines; `nav_fields`
+    raises `Unsupported` for them. STO and EOP records are read by their
+    one table whatever their message type (Table A41 prints an STO
+    record of type `LEG`, which Table 21 does not list).
+  - GLONASS L1OC and L3OC: Tables A16 and A17 of 4.02 end the record
+    with URAI_orb, URAI_clk, a spare and the transmission time, and the
+    example of Table A18 prints three values there, the transmission
+    time third. The names follow the tables, so a record written as the
+    example has `t_tm` empty and its transmission time unnamed.
+  - BDS `CNVX` ION records are read as BDGIM (Table A37); the format
+    `2X` of BROADCAST ORBIT - 5 in Table A31 is read as `4X`; the fourth
+    boundary of every region of Table A39 is named `mopid_max`, though
+    the table labels two of them "Latitude max".
+  - Tested on files built from the tables' formats with the values of
+    the documents' examples, and on generated files; no independent
+    reader is run on navigation files, and the test data holds no file
+    from a receiver or an IGS data centre.
+
+### gnsswire-antex
+
+- Only format version 1.4 is read; another version in ANTEX VERSION / SYST
+  raises `Unsupported`. Compressed files must be expanded first, and the
+  text decoded (the files are ASCII or Latin-1) before `read`.
+- Nothing is scaled or given a sign: offsets and pattern values are the
+  file's text, millimetres with two decimals (`number(field, 2)` gives
+  units of 0.01 mm), to be applied by section 3 of the document; angles are
+  degrees with one decimal. Pattern values and every field the reader does
+  not need are cut at the table's columns and kept unread, so a value
+  written out of place is not refused unless it changes a line's length;
+  numeric formats are checked only by `number`.
+- Checked, and `Invalid` otherwise: the order of records as the table
+  gives it (comments only at the two places it names), the grid rules of
+  DAZI and ZEN1 / ZEN2 / DZEN, the number of values in each row and of
+  azimuth rows, each row's azimuth, the number of frequency sections
+  against # OF FREQUENCIES, and that a section's END record names the
+  frequency of its START.
+- Frequency codes: any letter and two digits is accepted. The document
+  lists the codes of its time (`FREQUENCIES`) and asks for consistency
+  with RINEX; the files of the IGS hold later ones (`C05`, `I05`) under
+  version 1.4. The header's satellite system must be one the document
+  lists (G, R, E, C, J, S or M).
+- rms sections: the document does not say where one goes, beyond listing
+  it after END OF FREQUENCY. One is accepted anywhere after the frequency
+  section of its code and is not counted in # OF FREQUENCIES.
+- Receiver and satellite antennas share one record layout and the file
+  does not mark which is which: TYPE / SERIAL NO is given as `type`,
+  `serial`, `svn` and `cospar` for both, and a blank `serial` (every
+  antenna of the type) stays blank.
+- Blanks after a row's last value, which the files of the IGS have on some
+  rows, are kept; a labelled line longer than 80 columns is refused.
+- Tested on files built from the table's formats; the test data holds no
+  calibration file, and the document prints no example file. The IGS
+  models `igs14.atx` and `igs20.atx` read and write back unchanged, as a
+  check outside the tests; no other reader is run on the same files.
 
 ### gnsswire-nav
 
@@ -383,7 +495,7 @@ A change keeps to these rules:
   Where a specification is ambiguous, the code says so and "Limitations"
   in this README gives the reading taken.
 - A message is a frozen dataclass of the integers on the wire (text for
-  NMEA and RINEX), unscaled, and `encode(decode(frame))` gives back the
+  NMEA, RINEX and ANTEX), unscaled, and `encode(decode(frame))` gives back the
   frame's bytes. A new message is a new declarative table, tested on frames
   built from the specification and, where one exists, against an
   independent open-source decoder (pyrtcm, pyubx2, pynmeagps, pyspartn;

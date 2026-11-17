@@ -5,6 +5,7 @@ requires-python = ">=3.11"
 [manifest]
 members = [
     "gnsswire",
+    "gnsswire-antex",
     "gnsswire-bits",
     "gnsswire-nav",
     "gnsswire-nmea",
@@ -194,9 +195,10 @@ wheels = [
 
 [[package]]
 name = "gnsswire"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/gnsswire" }
 dependencies = [
+    { name = "gnsswire-antex" },
     { name = "gnsswire-bits" },
     { name = "gnsswire-nav" },
     { name = "gnsswire-nmea" },
@@ -209,6 +211,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "gnsswire-antex", editable = "packages/antex" },
     { name = "gnsswire-bits", editable = "packages/bits" },
     { name = "gnsswire-nav", editable = "packages/nav" },
     { name = "gnsswire-nmea", editable = "packages/nmea" },
@@ -218,6 +221,11 @@ requires-dist = [
     { name = "gnsswire-spartn", editable = "packages/spartn" },
     { name = "gnsswire-ubx", editable = "packages/ubx" },
 ]
+
+[[package]]
+name = "gnsswire-antex"
+version = "0.1.0"
+source = { editable = "packages/antex" }
 
 [[package]]
 name = "gnsswire-bits"
@@ -242,7 +250,7 @@ source = { editable = "packages/nmea" }
 
 [[package]]
 name = "gnsswire-rinex"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/rinex" }
 
 [[package]]
@@ -283,6 +291,7 @@ version = "0"
 source = { virtual = "." }
 dependencies = [
     { name = "gnsswire" },
+    { name = "gnsswire-antex" },
     { name = "gnsswire-bits" },
     { name = "gnsswire-nav" },
     { name = "gnsswire-nmea" },
@@ -308,6 +317,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "gnsswire", editable = "packages/gnsswire" },
+    { name = "gnsswire-antex", editable = "packages/antex" },
     { name = "gnsswire-bits", editable = "packages/bits" },
     { name = "gnsswire-nav", editable = "packages/nav" },
     { name = "gnsswire-nmea", editable = "packages/nmea" },

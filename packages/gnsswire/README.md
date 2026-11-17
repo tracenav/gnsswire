@@ -39,7 +39,8 @@ namespace; its page describes it and lists its messages.
 | [RTCM 3](https://pypi.org/project/gnsswire-rtcm3/) | `gnsswire.rtcm3` | MSM observations, ephemerides, station data, IGS SSR corrections |
 | [SPARTN](https://pypi.org/project/gnsswire-spartn/) | `gnsswire.spartn` | SPARTN v2 orbit, clock, bias and atmosphere corrections |
 | [SkyTraq](https://pypi.org/project/gnsswire-skytraq/) | `gnsswire.skytraq` | SkyTraq raw measurements and navigation data |
-| [RINEX](https://pypi.org/project/gnsswire-rinex/) | `gnsswire.rinex` | RINEX 3 and 4 observation files |
+| [RINEX](https://pypi.org/project/gnsswire-rinex/) | `gnsswire.rinex` | RINEX observation and navigation files |
+| [ANTEX](https://pypi.org/project/gnsswire-antex/) | `gnsswire.antex` | ANTEX 1.4 antenna phase centre offsets and variations |
 | [Navigation messages](https://pypi.org/project/gnsswire-nav/) | `gnsswire.nav` | GPS, Galileo, BeiDou and GLONASS broadcast messages, assembled into ephemerides |
 | [Bits](https://pypi.org/project/gnsswire-bits/) | `gnsswire.bits` | the bit reader, writer, CRCs and field tables the others are built on |
 
@@ -47,8 +48,8 @@ namespace; its page describes it and lists its messages.
 
 ### Every format works the same way
 
-Each binary or sentence format has the same four functions (RINEX files are
-read and written whole, with `read` and `write`):
+Each binary or sentence format has the same four functions (RINEX and ANTEX
+files are read and written whole, with `read` and `write`):
 
 ```text
 parse(buf, offset) -> Frame | NeedMore | Invalid   # is there a frame here? never searches

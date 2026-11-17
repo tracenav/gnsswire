@@ -22,6 +22,7 @@ line is ``""``, a field cut by it is the part that is there.
 from __future__ import annotations
 
 import dataclasses
+import functools
 import re
 import typing
 from dataclasses import dataclass
@@ -35,7 +36,7 @@ class Error(ValueError):
 
 
 class Invalid(Error):
-    """The text is not a RINEX 3 or 4 observation file as the tables describe it."""
+    """The text is not a RINEX file of the kind being read as the tables describe it."""
 
 
 class Unsupported(Error, LookupError):
@@ -118,8 +119,13 @@ class SatelliteRecord:
     obs: tuple[Observation, ...]
 
 
+@functools.cache
 def columns(cls: type) -> tuple[tuple[str, Col], ...]:
-    """The fields of a record dataclass with their columns, in order."""
+    """The fields of a record dataclass with their columns, in order.
+
+    Kept per class once read: the layout of a class does not change, and
+    every line of a file asks for it.
+    """
     hints = typing.get_type_hints(cls, include_extras=True)
     out = []
     for f in dataclasses.fields(cls):

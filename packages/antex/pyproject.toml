@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.27"]   # 1.27: PEP 639 licence metadata
+build-backend = "hatchling.build"
+
+[project]
+name = "gnsswire-antex"
+version = "0.1.0"
+description = "ANTEX 1.4 antenna calibration files (phase centre offsets and variations), read and written losslessly as fixed-column text fields."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "Trace Navigation" }]
+maintainers = [{ name = "Jacob Armstrong", email = "hi@jacobarm.com" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/tracenav/gnsswire"
+Source = "https://github.com/tracenav/gnsswire/tree/main/packages/antex"
+Changelog = "https://github.com/tracenav/gnsswire/blob/main/RELEASES.md"
+Issues = "https://github.com/tracenav/gnsswire/issues"
+
+# gnsswire is a namespace shared by several distributions: no __init__.py at that level.
+[tool.hatch.build.targets.wheel]
+packages = ["src/gnsswire"]

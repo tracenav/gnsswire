@@ -54,7 +54,7 @@ jobs:
       - name: Build every distribution, in upload order
         run: |
           uv build --no-sources -o dist/1 packages/bits
-          for p in nmea ubx rtcm3 spartn skytraq rinex nav; do uv build --no-sources -o dist/2 "packages/$p"; done
+          for p in nmea ubx rtcm3 spartn skytraq rinex antex nav; do uv build --no-sources -o dist/2 "packages/$p"; done
           uv build --no-sources -o dist/3 packages/gnsswire
       - run: uvx twine check --strict dist/*/*
       - uses: actions/upload-artifact@v4
@@ -111,7 +111,7 @@ jobs:
       - name: Every codec imports, and the README example runs
         run: |
           /tmp/check/bin/python -I - <<'EOF'
-          from gnsswire import bits, nav, nmea, rinex, rtcm3, skytraq, spartn, ubx
+          from gnsswire import antex, bits, nav, nmea, rinex, rtcm3, skytraq, spartn, ubx
           # The 1005 example of RTCM 10403.3 section 4.2.
           frame = rtcm3.parse(bytes.fromhex("D300133ED7D30202980EDEEF34B4BD62AC0941986F33360B98"), 0)
           assert rtcm3.decode(frame).station == 2003

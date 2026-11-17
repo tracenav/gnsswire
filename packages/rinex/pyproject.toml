@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gnsswire-rinex"
-version = "0.1.0"
-description = "RINEX 3 and 4 observation files, read and written losslessly as fixed-column text fields."
+version = "0.1.1"
+description = "RINEX 2, 3 and 4 observation and navigation files, read and written losslessly as fixed-column text fields."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

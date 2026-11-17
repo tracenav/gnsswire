@@ -6,8 +6,8 @@ build-backend = "hatchling.build"
 # namespace stays shared: its wheel holds only its .dist-info.
 [project]
 name = "gnsswire"
-version = "0.2.0"
-description = "Pure-Python codecs for GNSS wire formats: NMEA 0183, UBX, RTCM 3, SPARTN and SkyTraq, RINEX observation files, and broadcast navigation messages."
+version = "0.2.1"
+description = "Pure-Python codecs for GNSS wire formats: NMEA 0183, UBX, RTCM 3, SPARTN and SkyTraq, RINEX observation files, ANTEX antenna files, and broadcast navigation messages."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -36,6 +36,7 @@ dependencies = [
     "gnsswire-spartn>=0.2.0,<0.3",
     "gnsswire-skytraq>=0.1.0,<0.2",
     "gnsswire-rinex>=0.1.0,<0.2",
+    "gnsswire-antex>=0.1.0,<0.2",
     "gnsswire-nav>=0.1.0,<0.2",
 ]
 
@@ -53,6 +54,7 @@ gnsswire-rtcm3 = { workspace = true }
 gnsswire-spartn = { workspace = true }
 gnsswire-skytraq = { workspace = true }
 gnsswire-rinex = { workspace = true }
+gnsswire-antex = { workspace = true }
 gnsswire-nav = { workspace = true }
 
 [tool.hatch.build.targets.wheel]

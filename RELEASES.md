@@ -1,3 +1,12 @@
+Version 0.2.1 (2026-XX-XX)
+==========================
+* gnsswire-antex 0.1.0: ANTEX 1.4 antenna calibration files, a new distribution
+  * Phase centre offsets and variations of receiver and satellite antennas, per frequency, read and written losslessly
+* gnsswire-rinex 0.1.1: RINEX 2 observation files and RINEX navigation files
+  * RINEX 2 observation files with `read2` and `write2`
+  * Navigation files of RINEX 2, 3 and 4 with `read_nav` and `write_nav`, and their fields by name
+  * Reading is about forty times faster: a record class's column layout is worked out once, not for every line
+* gnsswire 0.2.1 installs gnsswire-antex with the others
 Version 0.2.0 (2026-11-16)
 ==========================
 * First release: codecs for GNSS wire formats, one distribution per format

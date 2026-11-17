@@ -9,7 +9,9 @@ copy the codecs were written from.
 |---|---|---|---|
 | RTCM 10403.3 (2016-10-07, 288 pages) | `rtcm3` | RTCM (sold by RTCM) | `535398c5…` |
 | SPARTN v2.0.3 (2025-11-07, 53 pages) | `spartn` | spartnformat.org | `cce617b8…` |
-| RINEX 3.05 and 4.02 | `rinex` (Tables A2 and A3, sections 5 and 6) | IGS | `05de6c89…`, `c267f641…` |
+| RINEX 3.05 and 4.02 | `rinex` (observation files: Tables A2 and A3, sections 5 and 6; navigation files: 3.05 Tables A5 to A19 and sections 5.4, 6.8; 4.02 Tables A7 to A41 and sections 5.4, 6.8) | IGS | `05de6c89…`, `c267f641…` |
+| RINEX 2.11 (10 December 2007, clarifications of 26 June 2012; `RINEX_2.11.txt`, plain text) | `rinex` (RINEX 2 observation files: Tables A1 and A2, sections 0.4, 5 and 6, 8.1.3; examples of Tables A7, A13, A14 and A17 in the tests; RINEX 2 navigation files: Tables A3, A4, A10, A11, A15 and A16, examples of Tables A8, A12 and A18 in the tests) | IGS, files.igs.org (`/pub/data/format/rinex211.txt`), free | `59042b80…` |
+| ANTEX: The Antenna Exchange Format, Version 1.4 (15 September 2010, Rothacher and Schmid; `ANTEX_1.4.txt`, Latin-1 text) | `antex` (section 4) | IGS, files.igs.org (`/pub/data/format/antex14.txt`), free | `86458154…` |
 | u-blox F9 HPG 1.51 interface description, UBXDOC-963802114-13124 R01, UBX protocol version 27.50 (327 pages; `ublox_F9_HPG_1.51_InterfaceDescription.pdf`, text copy `ublox_F9_HPG_1.51_InterfaceDescription.txt`) | `ubx`; `nmea` (its NMEA chapter stands in for NMEA 0183 v4.11, which is not public); `nav` (signal identifiers, section 1.5.4) | content.u-blox.com | `ac5fb90c…` |
 | u-blox D9 PMP 1.04 interface description, UBX-21040023 R01 (63 pages) | `ubx` (RXM-PMP version 0, section 2.13.1) | content.u-blox.com | `bd839453…` |
 | u-blox X20 HPG 2.11 interface description, UBXDOC-304424225-21617 R01, UBX protocol version 50.11 (278 pages; `ublox_X20_HPG_2.11_InterfaceDescription.pdf`, text copy `ublox_X20_HPG_2.11_InterfaceDescription.txt`) | `ubx` (checked against: same tables as F9 HPG 1.51, sections 3.2 to 3.4, 3.14.22.1, 3.16.3.1, 3.16.6.1, 3.16.8.1); `nav` (signal identifiers, section 1.5.4) | content.u-blox.com | `4f99e644…` |

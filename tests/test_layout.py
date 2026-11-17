@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CODECS = ["nmea", "ubx", "rtcm3", "spartn", "skytraq"]
 # What each package may import from the gnsswire namespace besides itself.
 MAY_IMPORT = {"bits": set(), "nmea": set(), "ubx": set(), "rtcm3": {"bits"}, "spartn": {"bits"},
-              "skytraq": set(), "rinex": set(), "nav": {"bits"}}
+              "skytraq": set(), "rinex": set(), "antex": set(), "nav": {"bits"}}
 INTERFACE = {"parse": ["buf", "offset"], "scan": ["buf", "offset"],
              "decode": ["frame"], "encode": ["message"]}
 

@@ -13,6 +13,7 @@ dependencies = [
     "gnsswire-spartn",
     "gnsswire-skytraq",
     "gnsswire-rinex",
+    "gnsswire-antex",
     "gnsswire-nav",
 ]
 
@@ -31,6 +32,7 @@ gnsswire-rtcm3 = { workspace = true }
 gnsswire-spartn = { workspace = true }
 gnsswire-skytraq = { workspace = true }
 gnsswire-rinex = { workspace = true }
+gnsswire-antex = { workspace = true }
 gnsswire-nav = { workspace = true }
 
 [dependency-groups]

@@ -1,7 +1,7 @@
 # Roadmap
 
 gnsswire is a set of small distributions that turn GNSS wire bytes into
-the fields on the wire (integers; text for NMEA and RINEX) and back, each
+the fields on the wire (integers; text for NMEA, RINEX and ANTEX) and back, each
 usable on its own, written from the published specifications. Every new message is a field table
 added as data, with the checks the existing ones have; a frame that raised
 `Unsupported` then decodes. What each distribution does not decode today
@@ -42,8 +42,9 @@ is under "Limitations" in the repository README.
 - `rtcm3`: IGS SSR sub-types that v1.00 reserves (such as 202), if a
   published IGS document defines them.
 - `rinex`: the header records now kept as text, such as GLONASS SLOT /
-  FRQ # and SYS / PHASE SHIFT, read into fields.
-- RINEX navigation files and SP3; RINEX 2 observation files.
+  FRQ # and SYS / PHASE SHIFT, and IONOSPHERIC CORR and TIME SYSTEM CORR
+  of navigation files, read into fields.
+- SP3 orbit files.
 - C decoders generated from the same field tables, for embedded targets.
 
 ## Not planned

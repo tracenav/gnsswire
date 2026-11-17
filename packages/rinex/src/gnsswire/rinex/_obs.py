@@ -173,7 +173,7 @@ def _check_version(header: HeaderRecord) -> str:
         raise Invalid("the first record is not RINEX VERSION / TYPE")
     version = header.content[:9].strip()
     if version.split(".")[0] not in VERSIONS:
-        raise Unsupported(f"RINEX version {version!r}: only 3.xx and 4.xx are implemented")
+        raise Unsupported(f"RINEX version {version!r}: read reads 3.xx and 4.xx (read2 reads 2.xx)")
     if header.content[20:21] != "O":
         raise Unsupported(f"file type {header.content[20:21]!r}: only observation data (O)")
     return version
