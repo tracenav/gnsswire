@@ -484,8 +484,8 @@ uv sync
 uv run pytest
 ```
 
-`uv run pytest` is the gate, and CI runs it on Linux, macOS and Windows for
-every supported Python version. Besides each codec's tests it runs every
+`uv run pytest` is the gate, and CI runs it on Linux for every
+supported Python version. Besides each codec's tests it runs every
 ```` ```python ```` block of the READMEs (`tests/test_readmes.py`), checks the
 workspace rules (`tests/test_layout.py`), and builds every wheel and sdist
 offline to check what each contains (`tests/test_build.py`). The build uses
